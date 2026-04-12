@@ -1,0 +1,5 @@
+{
+  "name": "Ponto Inteligente",
+  "description": "Sistema de controle de ponto diário com cálculo de horas extras e limite de jornada.",
+  "requestFramePermissions": []
+}
