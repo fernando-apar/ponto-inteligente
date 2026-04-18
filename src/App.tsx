@@ -16,7 +16,10 @@ import {
   History,
   Save,
   Trash2,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  ChevronRight,
+  TrendingUp,
+  Award
 } from "lucide-react";
 import { 
   format, 
@@ -33,6 +36,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 type TimePoint = "entrada" | "almocoSaida" | "almocoRetorno" | "saida";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { staggerChildren: 0.1 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 }
+};
 
 interface PontoData {
   entrada: string;
@@ -83,6 +100,7 @@ export default function App() {
   });
 
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [activeTab, setActiveTab] = useState<"hoje" | "historico">("hoje");
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -219,355 +237,389 @@ export default function App() {
     };
   }, [data, currentTime]);
 
-  const [activeTab, setActiveTab] = useState<"hoje" | "historico">("hoje");
-
   return (
-    <div className="min-h-screen bg-[#F8F9FA] p-4 md:p-8 font-sans text-slate-900">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#0F172A] selection:bg-red-500/30 selection:text-white text-slate-200 font-sans relative overflow-x-hidden">
+      {/* Background Decorative Elements */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-red-600/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px]" />
+      </div>
+
+      <div className="max-w-5xl mx-auto p-4 md:p-8 relative z-10">
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">Ponto Inteligente</h1>
-            <div className="flex items-center gap-2 text-slate-500 mt-1">
-              <CalendarIcon size={16} />
-              <span className="capitalize">{format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}</span>
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-white uppercase italic">Ponto Inteligente</h1>
+              <div className="flex items-center gap-2 text-slate-400 mt-1 font-medium">
+                <CalendarIcon size={14} />
+                <span className="capitalize text-sm">{format(currentTime, "EEEE, d 'de' MMMM", { locale: ptBR })}</span>
+              </div>
             </div>
           </div>
-          <div className="bg-white px-6 py-3 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-4 rounded-3xl flex items-center gap-6 shadow-2xl">
             <div className="text-right">
-              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Hora Atual</p>
-              <p className="text-2xl font-mono font-bold text-slate-800">{format(currentTime, "HH:mm:ss")}</p>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Hora em Tempo Real</p>
+              <p className="text-3xl font-mono font-black text-white tracking-widest">{format(currentTime, "HH:mm:ss")}</p>
             </div>
-            <Clock className="text-blue-500" size={24} />
+            <div className="p-3 bg-red-600 rounded-2xl shadow-lg shadow-red-600/20">
+              <Clock className="text-white" size={24} />
+            </div>
           </div>
         </header>
 
-        <div className="flex w-full mb-8 bg-slate-200/50 p-1 rounded-2xl h-14">
-          <button 
-            onClick={() => setActiveTab("hoje")}
-            className={cn(
-              "flex-1 rounded-xl flex items-center justify-center text-base font-medium transition-all",
-              activeTab === "hoje" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"
-            )}
-          >
-            <Clock size={18} className="mr-2" />
-            Hoje
-          </button>
-          <button 
-            onClick={() => setActiveTab("historico")}
-            className={cn(
-              "flex-1 rounded-xl flex items-center justify-center text-base font-medium transition-all",
-              activeTab === "historico" ? "bg-white shadow-sm text-slate-900" : "text-slate-500 hover:text-slate-700"
-            )}
-          >
-            <History size={18} className="mr-2" />
-            Histórico
-          </button>
+        {/* Navigation Tabs */}
+        <div className="flex items-center justify-center mb-10">
+          <div className="bg-white/5 backdrop-blur-md p-1.5 rounded-[2rem] border border-white/10 flex gap-1 w-full max-w-sm">
+            <button 
+              onClick={() => setActiveTab("hoje")}
+              className={cn(
+                "flex-1 h-12 rounded-full flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300",
+                activeTab === "hoje" ? "bg-red-600 text-white shadow-xl shadow-red-600/20" : "text-slate-400 hover:text-white"
+              )}
+            >
+              <Clock size={16} />
+              HOJE
+            </button>
+            <button 
+              onClick={() => setActiveTab("historico")}
+              className={cn(
+                "flex-1 h-12 rounded-full flex items-center justify-center gap-2 text-sm font-bold transition-all duration-300",
+                activeTab === "historico" ? "bg-red-600 text-white shadow-xl shadow-red-600/20" : "text-slate-400 hover:text-white"
+              )}
+            >
+              <History size={16} />
+              HISTÓRICO
+            </button>
+          </div>
         </div>
 
-        {activeTab === "hoje" ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Main Controls */}
-              <div className="lg:col-span-2 bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold">Registro de Ponto</h2>
-                    <p className="text-sm text-slate-500">Marque seus horários de hoje</p>
+        <motion.div
+          key={activeTab}
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
+          {activeTab === "hoje" ? (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Main Controls Card */}
+              <motion.div variants={itemVariants} className="lg:col-span-8 group">
+                <div className="bg-white/5 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl transition-all duration-500 hover:border-white/20">
+                  <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="p-3 bg-white/5 rounded-2xl">
+                        <Save className="text-red-500" size={20} />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black text-white uppercase tracking-tight">Registro Diário</h2>
+                        <p className="text-sm text-slate-400">Jornada padrão: 7h 20m</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={resetDay} 
+                      className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all active:scale-95"
+                    >
+                      <RotateCcw size={20} />
+                    </button>
                   </div>
-                  <button onClick={resetDay} className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                    <RotateCcw size={18} />
-                  </button>
+
+                  <div className="p-8 space-y-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Entry Points Grid */}
+                      {[
+                        { id: "entrada", label: "entrada", icon: LogIn, color: "emerald" },
+                        { id: "almocoSaida", label: "saída almoço", icon: Coffee, color: "orange" },
+                        { id: "almocoRetorno", label: "retorno almoço", icon: RotateCcw, color: "blue" },
+                        { id: "saida", label: "saída final", icon: LogOut, color: "red" },
+                      ].map((item) => (
+                        <div key={item.id} className="space-y-4 group/input">
+                          <div className="flex items-center justify-between px-1">
+                            <label className="flex items-center gap-3 text-xs font-black text-slate-500 uppercase tracking-widest group-focus-within/input:text-white transition-colors">
+                              <item.icon size={16} className={cn(`text-${item.color}-500`)} />
+                              {item.label}
+                            </label>
+                            {!(data as any)[item.id] && (
+                              <button 
+                                onClick={() => handleClockIn(item.id as TimePoint)} 
+                                className="text-[10px] font-black text-red-500 hover:text-red-400 uppercase tracking-widest transition-colors flex items-center gap-1"
+                              >
+                                AGORA <ChevronRight size={10} />
+                              </button>
+                            )}
+                          </div>
+                          <div className="relative group/field">
+                            <input 
+                              type="time" 
+                              value={(data as any)[item.id]} 
+                              onChange={(e) => handleTimeChange(item.id as TimePoint, e.target.value)}
+                              className={cn(
+                                "w-full h-16 px-6 bg-white/5 rounded-3xl border border-white/5 text-xl font-mono font-bold text-white transition-all outline-none",
+                                "focus:bg-white/10 focus:border-white/20 focus:ring-4 focus:ring-white/5 hover:bg-white/10"
+                              )}
+                            />
+                            <div className={cn(
+                              "absolute bottom-0 left-6 right-6 h-[2px] rounded-full scale-x-0 group-focus-within/field:scale-x-100 transition-transform origin-left duration-500",
+                              `bg-${item.color}-500 shadow-[0_0_12px_rgba(var(--${item.color}-500),0.5)]`
+                            )} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="h-[1px] bg-white/5" />
+
+                    {/* Progress Visualizer */}
+                    <div className="space-y-6">
+                      <div className="flex justify-between items-end mb-2">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center text-red-500 font-bold">
+                            <TrendingUp size={24} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tempo de Trabalho</p>
+                            <p className="text-3xl font-mono font-black text-white">{stats.workedFormatted}</p>
+                          </div>
+                        </div>
+                        <div className={cn(
+                          "px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest animate-pulse",
+                          stats.isOvertime ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                        )}>
+                          {stats.isOvertime ? "HORA EXTRA" : "JORNADA NORMAL"}
+                        </div>
+                      </div>
+                      
+                      <div className="relative h-6 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-1">
+                        <motion.div 
+                          initial={{ width: 0 }}
+                          animate={{ width: `${stats.progress}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                          className="h-full bg-gradient-to-r from-red-600 to-red-400 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.4)]"
+                        />
+                      </div>
+                      
+                      {stats.isOvertime && (
+                        <AnimatePresence>
+                          <motion.div 
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            className="pt-4 space-y-3"
+                          >
+                            <div className="flex justify-between text-[10px] font-black text-red-500 uppercase tracking-widest">
+                              <span className="flex items-center gap-2 px-1">
+                                <AlertCircle size={12} /> ALERTA DE EXTRA:
+                              </span>
+                              <span>{stats.overtimeFormatted}</span>
+                            </div>
+                            <div className="h-2 w-full bg-red-900/20 rounded-full overflow-hidden">
+                              <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: `${stats.overtimeProgress}%` }}
+                                className="h-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.6)]"
+                              />
+                            </div>
+                          </motion.div>
+                        </AnimatePresence>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-8 bg-white/[0.02] border-t border-white/5">
+                    <button 
+                      onClick={finalizeDay}
+                      disabled={!data.entrada || !data.saida}
+                      className="w-full h-20 group/btn relative overflow-hidden flex items-center justify-center gap-3 text-lg font-black uppercase tracking-[0.2em] bg-white text-slate-900 rounded-[2.5rem] shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-30 disabled:hover:scale-100"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-tr from-white to-slate-200 opacity-0 group-hover/btn:opacity-100 transition-opacity" />
+                      <Save size={24} className="relative z-10" />
+                      <span className="relative z-10">Finalizar Jornada</span>
+                    </button>
+                    <p className="text-center text-[10px] text-slate-500 mt-6 font-bold tracking-[0.1em]">
+                      OS DADOS SERÃO ARQUIVADOS PERMANENTEMENTE NO SEU HISTÓRICO LOCAL.
+                    </p>
+                  </div>
                 </div>
-                <div className="p-6 space-y-8">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Entrada */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                          <LogIn size={16} className="text-emerald-500" />
-                          Entrada
-                        </label>
-                        {!data.entrada && (
-                          <button onClick={() => handleClockIn("entrada")} className="text-xs font-medium text-blue-600 hover:text-blue-700 underline underline-offset-4">
-                            Bater Agora
-                          </button>
-                        )}
-                      </div>
-                      <input 
-                        type="time" 
-                        value={data.entrada} 
-                        onChange={(e) => handleTimeChange("entrada", e.target.value)}
-                        className="w-full h-12 px-4 rounded-xl border border-slate-200 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                      />
-                    </div>
+              </motion.div>
 
-                    {/* Saída Almoço */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                          <Coffee size={16} className="text-orange-500" />
-                          Saída Almoço
-                        </label>
-                        {!data.almocoSaida && (
-                          <button onClick={() => handleClockIn("almocoSaida")} className="text-xs font-medium text-blue-600 hover:text-blue-700 underline underline-offset-4">
-                            Bater Agora
-                          </button>
-                        )}
-                      </div>
-                      <input 
-                        type="time" 
-                        value={data.almocoSaida} 
-                        onChange={(e) => handleTimeChange("almocoSaida", e.target.value)}
-                        className="w-full h-12 px-4 rounded-xl border border-slate-200 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                      />
-                    </div>
-
-                    {/* Retorno Almoço */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                          <RotateCcw size={16} className="text-blue-500" />
-                          Retorno Almoço
-                        </label>
-                        {!data.almocoRetorno && (
-                          <button onClick={() => handleClockIn("almocoRetorno")} className="text-xs font-medium text-blue-600 hover:text-blue-700 underline underline-offset-4">
-                            Bater Agora
-                          </button>
-                        )}
-                      </div>
-                      <input 
-                        type="time" 
-                        value={data.almocoRetorno} 
-                        onChange={(e) => handleTimeChange("almocoRetorno", e.target.value)}
-                        className="w-full h-12 px-4 rounded-xl border border-slate-200 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                      />
-                    </div>
-
-                    {/* Saída Final */}
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                          <LogOut size={16} className="text-red-500" />
-                          Saída Final
-                        </label>
-                        {!data.saida && (
-                          <button onClick={() => handleClockIn("saida")} className="text-xs font-medium text-blue-600 hover:text-blue-700 underline underline-offset-4">
-                            Bater Agora
-                          </button>
-                        )}
-                      </div>
-                      <input 
-                        type="time" 
-                        value={data.saida} 
-                        onChange={(e) => handleTimeChange("saida", e.target.value)}
-                        className="w-full h-12 px-4 rounded-xl border border-slate-200 text-lg font-mono focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500"
-                      />
-                    </div>
-                  </div>
-
-                  <hr className="border-slate-100" />
-
-                  {/* Progress Section */}
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-slate-500">Progresso da Jornada (7h 20m)</p>
-                        <p className="text-2xl font-bold text-slate-900">{stats.workedFormatted}</p>
-                      </div>
-                      <span className={cn(
-                        "px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider",
-                        stats.isOvertime ? "bg-red-100 text-red-600" : "bg-slate-100 text-slate-600"
-                      )}>
-                        {stats.isOvertime ? "Hora Extra" : "Jornada Normal"}
-                      </span>
-                    </div>
-                    <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${stats.progress}%` }} />
+              {/* Predictions & Stats Cards */}
+              <div className="lg:col-span-4 space-y-8">
+                <motion.div variants={itemVariants} className="bg-white rounded-[2.5rem] p-1 shadow-2xl">
+                  <div className="bg-slate-900 rounded-[2.4rem] p-8 space-y-10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                      <Timer size={120} />
                     </div>
                     
-                    {stats.isOvertime && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-2"
-                      >
-                        <div className="flex justify-between text-xs font-medium text-red-500 uppercase tracking-wider">
-                          <span>Horas Extras</span>
-                          <span>{stats.overtimeFormatted}</span>
+                    <div className="space-y-1">
+                      <h3 className="flex items-center gap-2 text-lg font-black text-white uppercase italic">
+                        <Timer size={20} className="text-red-500" />
+                        PREVISÕES
+                      </h3>
+                      <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Baseado nos registros atuais</p>
+                    </div>
+                    
+                    <div className="space-y-8">
+                      <div className="space-y-3">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Saída Ideal (7h 20m)</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-4xl font-mono font-black text-white">
+                            {stats.finishTime8h ? format(stats.finishTime8h, "HH:mm") : "--:--"}
+                          </p>
+                          {stats.finishTime8h && isAfter(currentTime, stats.finishTime8h) && (
+                            <div className="h-10 w-10 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                              <CheckCircle2 className="text-emerald-500" size={20} />
+                            </div>
+                          )}
                         </div>
-                        <div className="h-2 w-full bg-red-50 rounded-full overflow-hidden">
-                          <div className="h-full bg-red-500 transition-all duration-500" style={{ width: `${stats.overtimeProgress}%` }} />
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
-                <div className="bg-slate-50/50 p-6 border-t border-slate-100">
-                  <button 
-                    className="w-full h-12 flex items-center justify-center text-base font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-xl shadow-lg shadow-slate-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    onClick={finalizeDay}
-                    disabled={!data.entrada || !data.saida}
-                  >
-                    <Save size={18} className="mr-2" />
-                    Finalizar Dia e Salvar no Histórico
-                  </button>
-                </div>
-              </div>
+                      </div>
 
-              {/* Summary / Predictions */}
-              <div className="space-y-6">
-                <div className="bg-slate-900 text-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 space-y-6">
-                  <div className="space-y-1">
-                    <h3 className="flex items-center gap-2 text-lg font-bold">
-                      <Timer size={20} className="text-blue-400" />
-                      Previsões
-                    </h3>
-                    <p className="text-slate-400 text-sm">Horários limite para hoje</p>
+                      <div className="h-[1px] bg-white/5" />
+
+                      <div className="space-y-3">
+                        <p className="text-[10px] font-black text-red-500/70 uppercase tracking-widest">Limite Crítico (+2h)</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-4xl font-mono font-black text-red-500">
+                            {stats.finishTime10h ? format(stats.finishTime10h, "HH:mm") : "--:--"}
+                          </p>
+                          {stats.finishTime10h && isAfter(currentTime, stats.finishTime10h) && (
+                            <div className="h-10 w-10 bg-red-500/20 rounded-full flex items-center justify-center animate-bounce">
+                              <AlertCircle className="text-red-500" size={20} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white/5 -mx-8 -mb-8 p-6 flex items-center gap-4 border-t border-white/5">
+                      <div className="flex -space-x-2">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="h-6 w-6 rounded-full bg-slate-800 border-2 border-slate-900" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Acompanhando...</span>
+                    </div>
                   </div>
-                  
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="bg-white/5 backdrop-blur-2xl rounded-[2.5rem] border border-white/10 p-8 space-y-6 shadow-2xl">
+                  <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Métricas do Dia</h3>
                   <div className="space-y-6">
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Saída Ideal (7h 20m)</p>
-                      <div className="flex items-center justify-between">
-                        <p className="text-3xl font-mono font-bold text-blue-400">
-                          {stats.finishTime8h ? format(stats.finishTime8h, "HH:mm") : "--:--"}
-                        </p>
-                        {stats.finishTime8h && isAfter(currentTime, stats.finishTime8h) && (
-                          <CheckCircle2 className="text-emerald-500" size={24} />
-                        )}
+                    <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
+                      <div className="flex items-center gap-3">
+                        <Coffee className="text-orange-500" size={16} />
+                        <span className="text-xs font-black uppercase text-slate-400">Pausa Almoço</span>
                       </div>
+                      <span className="font-mono font-bold text-lg">{stats.lunchFormatted}</span>
                     </div>
-
-                    <hr className="border-slate-800" />
-
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Limite Máximo (7h 20m + 2h)</p>
-                      <div className="flex items-center justify-between">
-                        <p className="text-3xl font-mono font-bold text-red-400">
-                          {stats.finishTime10h ? format(stats.finishTime10h, "HH:mm") : "--:--"}
-                        </p>
-                        {stats.finishTime10h && isAfter(currentTime, stats.finishTime10h) && (
-                          <AlertCircle className="text-red-500" size={24} />
-                        )}
+                    <div className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
+                      <div className="flex items-center gap-3">
+                        <Award className="text-red-500" size={16} />
+                        <span className="text-xs font-black uppercase text-slate-400">Total Extras</span>
                       </div>
-                      <p className="text-[10px] text-slate-500 leading-tight">
-                        * Cálculo baseado na entrada e intervalo de almoço.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-slate-800/50 -mx-6 -mb-6 p-4 rounded-b-3xl flex items-center gap-3 text-sm text-slate-300">
-                    <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-                    <span>Monitoramento em tempo real</span>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 space-y-4 border border-slate-100">
-                  <h3 className="text-sm font-medium text-slate-500 uppercase tracking-wider">Resumo do Dia</h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600 text-sm">Tempo de Almoço</span>
-                      <span className="font-semibold">{stats.lunchFormatted}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-slate-600 text-sm">Horas Extras</span>
-                      <span className={cn("font-semibold", stats.isOvertime ? "text-red-500" : "text-slate-400")}>
+                      <span className={cn("font-mono font-bold text-lg", stats.isOvertime ? "text-red-500" : "text-slate-500")}>
                         {stats.overtimeFormatted}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center pt-2 border-t border-slate-50">
-                      <span className="text-slate-900 font-medium">Total Trabalhado</span>
-                      <span className="text-xl font-bold text-blue-600">{stats.workedFormatted}</span>
+                  </div>
+                </motion.div>
+              </div>
+            </div>
+          ) : (
+            <motion.div variants={itemVariants} className="max-w-4xl mx-auto">
+              <div className="bg-white/5 backdrop-blur-3xl rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl">
+                <div className="p-10 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-red-600/10 to-transparent">
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-red-600/20 rounded-3xl">
+                      <History className="text-red-500" size={28} />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Relatórios</h2>
+                      <p className="text-sm text-slate-500 font-bold uppercase tracking-widest">Registro permanente de atividades</p>
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Info Alert */}
-            <AnimatePresence>
-              {!data.entrada && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-start gap-3"
-                >
-                  <AlertCircle className="text-blue-500 shrink-0 mt-0.5" size={20} />
-                  <div>
-                    <p className="text-sm font-semibold text-blue-900">Comece seu dia!</p>
-                    <p className="text-sm text-blue-700">Registre seu horário de entrada para começar a calcular sua jornada e previsões de saída.</p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-              <div className="p-6 border-b border-slate-100">
-                <h2 className="text-xl font-bold">Histórico de Batidas</h2>
-                <p className="text-sm text-slate-500">Relatório de dias finalizados</p>
-              </div>
-              <div className="p-0">
-                {history.length === 0 ? (
-                  <div className="p-12 text-center space-y-3">
-                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                      <History className="text-slate-300" size={32} />
-                    </div>
-                    <p className="text-slate-500 font-medium">Nenhum registro encontrado.</p>
-                    <p className="text-slate-400 text-sm">Finalize um dia para vê-lo aqui.</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-slate-100">
-                    {history.map((item) => (
-                      <div key={item.id} className="p-6 hover:bg-slate-50/50 transition-colors">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="space-y-1">
-                            <p className="text-lg font-bold text-slate-800">
-                              {format(parse(item.date, "yyyy-MM-dd", new Date()), "dd 'de' MMMM", { locale: ptBR })}
-                            </p>
-                            <div className="flex flex-wrap gap-3 text-sm text-slate-500">
-                              <span className="flex items-center gap-1">
-                                <LogIn size={14} className="text-emerald-500" /> {item.data.entrada}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Coffee size={14} className="text-orange-500" /> {item.data.almocoSaida} - {item.data.almocoRetorno}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <LogOut size={14} className="text-red-500" /> {item.data.saida}
-                              </span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-6">
-                            <div className="text-right">
-                              <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total</p>
-                              <p className="text-xl font-bold text-blue-600">{item.workedFormatted}</p>
-                            </div>
-                            {item.isOvertime && (
-                              <div className="text-right">
-                                <p className="text-xs font-medium text-red-400 uppercase tracking-wider">Extra</p>
-                                <p className="text-xl font-bold text-red-500">{item.overtimeFormatted}</p>
-                              </div>
-                            )}
-                            <button 
-                              onClick={() => deleteHistoryItem(item.id)}
-                              className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </div>
+                
+                <div className="min-h-[400px]">
+                  {history.length === 0 ? (
+                    <div className="py-32 text-center animate-pulse">
+                      <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8 border border-white/5">
+                        <History className="text-slate-700" size={40} />
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-sm">Base de dados vazia</p>
+                      <p className="text-slate-700 text-xs mt-2 uppercase font-bold">Finalize um turno para gerar registros.</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-white/5">
+                      {history.map((item, idx) => (
+                        <motion.div 
+                          key={item.id} 
+                          initial={{ x: -20, opacity: 0 }}
+                          animate={{ x: 0, opacity: 1 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="p-8 hover:bg-white/[0.03] transition-all group/item"
+                        >
+                          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                            <div className="space-y-4">
+                              <div className="flex items-center gap-3">
+                                <p className="text-2xl font-black text-white italic capitalize">
+                                  {format(parse(item.date, "yyyy-MM-dd", new Date()), "dd 'de' MMMM", { locale: ptBR })}
+                                </p>
+                                {item.isOvertime && (
+                                  <span className="px-2 py-1 bg-red-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md">
+                                    EXTRA
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex flex-wrap gap-6">
+                                <div className="flex items-center gap-2 py-1 px-3 bg-white/5 rounded-xl border border-white/5">
+                                  <LogIn size={12} className="text-emerald-500" /> 
+                                  <span className="text-xs font-mono font-bold text-slate-300">{item.data.entrada}</span>
+                                </div>
+                                <div className="flex items-center gap-2 py-1 px-3 bg-white/5 rounded-xl border border-white/5">
+                                  <Coffee size={12} className="text-orange-500" /> 
+                                  <span className="text-xs font-mono font-bold text-slate-300">{item.data.almocoSaida} — {item.data.almocoRetorno}</span>
+                                </div>
+                                <div className="flex items-center gap-2 py-1 px-3 bg-white/5 rounded-xl border border-white/5">
+                                  <LogOut size={12} className="text-red-500" /> 
+                                  <span className="text-xs font-mono font-bold text-slate-300">{item.data.saida || "--:--"}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-10">
+                              <div className="flex gap-10">
+                                <div className="text-right">
+                                  <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-1">Total</p>
+                                  <p className="text-2xl font-mono font-black text-white">{item.workedFormatted}</p>
+                                </div>
+                                {item.isOvertime && (
+                                  <div className="text-right">
+                                    <p className="text-[10px] font-black text-red-500/50 uppercase tracking-widest mb-1">Extra</p>
+                                    <p className="text-2xl font-mono font-black text-red-500">{item.overtimeFormatted}</p>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="h-10 w-[1px] bg-white/10 hidden md:block" />
+                              <button 
+                                onClick={() => deleteHistoryItem(item.id)}
+                                className="p-3 text-slate-600 hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all opacity-0 group-hover/item:opacity-100 scale-90 group-hover/item:scale-100"
+                              >
+                                <Trash2 size={20} />
+                              </button>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </motion.div>
+          )}
+        </motion.div>
+
+        {/* Footer Brand */}
+        <footer className="mt-20 pb-10 text-center space-y-4">
+          <p className="text-slate-600 text-[10px] font-black uppercase tracking-[0.4em]">Ponto Inteligente — v2.0</p>
+        </footer>
       </div>
     </div>
   );
